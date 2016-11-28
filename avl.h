@@ -1,11 +1,11 @@
 typedef struct avl_op avl_op_t;
 typedef struct avl_node avl_node_t;
-typedef struct avl_root_t avl_root_t;
+typedef struct avl_root avl_root_t;
 typedef int (*compare_func_t) (void *, void*);
-typedef int (*ll_func_t) (avl_node_t*);
-typedef int (*rr_func_t) (avl_node_t*);
-typedef int (*rl_func_t) (avl_node_t*);
-typedef int (*lr_func_t) (avl_node_t*);
+typedef avl_node_t* (*ll_func_t) (avl_node_t*);
+typedef avl_node_t* (*rr_func_t) (avl_node_t*);
+typedef avl_node_t* (*rl_func_t) (avl_node_t*);
+typedef avl_node_t* (*lr_func_t) (avl_node_t*);
 
 struct avl_op{
     compare_func_t compare;
@@ -17,7 +17,7 @@ struct avl_op{
 
 struct avl_node{
     void *data;
-    unsigned int subtree_height;
+    int subtree_height;
     avl_node_t *parent;
     avl_node_t *left;
     avl_node_t *right;
@@ -28,7 +28,8 @@ struct avl_root{
     avl_op_t *ops;
 };
 
-void avl_init(avl_root_t *root);
-void avl_insert(avl_root_t *root, void *data);
-void avl_delete(avl_root_t *root, void *data);
-void avl_fini(avl_root_t *root);
+extern void avl_init(avl_root_t *root, compare_func_t cmp);
+extern void avl_insert(avl_root_t *root, void *data);
+extern void avl_delete(avl_root_t *root, void *data);
+extern void avl_dump(avl_root_t *root);
+extern void avl_fini(avl_root_t *root);
