@@ -255,6 +255,25 @@ static avl_node_t * insert_to_node(avl_op_t *ops, avl_node_t *node, void* data){
         return node;
     }
 }
+static void* search_under_node(avl_op_t *ops, avl_node_t *node, void* data){
+    int cmp = ops->compare(node->data, data);
+    if(cmp > 0){
+        avl_node_t *right_node = node->right;
+        if(right_node)
+            return search_under_node(ops, right_node, data);
+        else
+            return NULL;
+    }
+    else if(cmp < 0){
+        avl_node_t *left_node = node->left;
+        if(left_node)
+            return search_under_node(ops, left_node, data);
+        else
+            return NULL;
+    }
+    else
+        return node->data;
+}
 
 void avl_init(avl_root_t *root, compare_func_t cmp, print_func_t pt){
     root->root = NULL;
@@ -266,15 +285,21 @@ void avl_init(avl_root_t *root, compare_func_t cmp, print_func_t pt){
         root->ops->print_data = pt;
 }
 void avl_insert(avl_root_t *root, void *data){
-    if(root->root == NULL){
+    if(root->root){
+        root->root = insert_to_node(root->ops, root->root, data);
+        update_subtree_height(root->root);
+    }
+    else{
         root->root = (avl_node_t*) calloc(1, sizeof(avl_node_t));
         root->root->data = data;
         root->root->subtree_height = 0;
     }
-    else{
-        root->root = insert_to_node(root->ops, root->root, data);
-        update_subtree_height(root->root);
-    }
+}
+void* avl_search(avl_root_t *root, void *data){
+    if(root->root)
+        return search_under_node(root->ops, root->root, data);
+    else
+        return NULL;
 }
 static void print_node(avl_node_t *node, avl_op_t *ops){
     printf("[depth:%d,", node->subtree_height);

@@ -1,6 +1,7 @@
 #include "avl.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <assert.h>
 typedef struct {
     int key;
 } my_data_t;
@@ -22,11 +23,16 @@ int main(){
     avl_root_t* root = malloc(sizeof(avl_root_t));
     avl_init(root, my_compare, my_print);
     avl_dump(root);
-    my_data_t * a;
+    my_data_t* a;
+    my_data_t* keep;
     for(int i = 0; i < 1000; i++){
         a = (my_data_t *)calloc(1, sizeof(my_data_t));
         a->key = rand();
+        if(i == 500)
+            keep = a;
         avl_insert(root, a);
         avl_dump(root);
     }
+    void *d = avl_search(root, keep);
+    assert(d); 
 }
