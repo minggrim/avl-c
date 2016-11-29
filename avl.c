@@ -18,12 +18,13 @@ static void update_subtree_height(avl_node_t* node){
         node->subtree_height = 0;
 }
 static avl_node_t* ll_rotate(avl_node_t* root){
-    printf("ll occur\n");
+    //printf("ll occur\n");
     //update link
     avl_node_t* lchild = root->left;
     root->left = lchild->right;
     lchild->right = root;
-    lchild->parent = root->parent;
+    //lchild->parent = root->parent;
+    /*
     if(root->parent){
         if(root->parent->left == root && root->parent->right != root)
             root->parent->left = lchild;
@@ -31,7 +32,7 @@ static avl_node_t* ll_rotate(avl_node_t* root){
             root->parent->right = lchild;
         else
             assert(0 && "impossible case (ll), must be internal error!");
-    }
+    }*/
     //update old root subtree_height
     update_subtree_height(root);
     //update new root subtree_height
@@ -39,11 +40,12 @@ static avl_node_t* ll_rotate(avl_node_t* root){
     return lchild;
 }
 static avl_node_t* rr_rotate(avl_node_t* root){
-    printf("rr occur\n");
+    //printf("rr occur\n");
     //update link
     avl_node_t* rchild = root->right;
     root->right = rchild->left;
     rchild->left = root;
+    /*
     if(root->parent){
         rchild->parent = root->parent;
         if(root->parent->left == root && root->parent->right != root)
@@ -55,7 +57,7 @@ static avl_node_t* rr_rotate(avl_node_t* root){
     }
     else{
         rchild->parent = NULL;
-    }
+    }*/
     //update old root subtree_height
     update_subtree_height(root);
     //update new root subtree_height
@@ -63,7 +65,7 @@ static avl_node_t* rr_rotate(avl_node_t* root){
     return rchild;
 }
 static avl_node_t* rl_rotate(avl_node_t* root){
-    printf("rl occur\n");
+    //printf("rl occur\n");
     avl_node_t* rchild = root->right;
     avl_node_t* rlgrand = root->right->left;
     //update link
@@ -71,6 +73,7 @@ static avl_node_t* rl_rotate(avl_node_t* root){
     rchild->left = rlgrand->right;
     rlgrand->left = root;
     rlgrand->right = rchild;
+    /*
     if(root->parent){
         rlgrand->parent = root->parent;
         if(root->parent->left == root && root->parent->right != root)
@@ -83,6 +86,7 @@ static avl_node_t* rl_rotate(avl_node_t* root){
     else{
         rlgrand->parent = NULL;
     }
+    */
     //update old root subtree_height
     update_subtree_height(root);
     //update rchild subtree_height
@@ -92,13 +96,14 @@ static avl_node_t* rl_rotate(avl_node_t* root){
     return rlgrand;
 }
 static avl_node_t* lr_rotate(avl_node_t* root){
-    printf("lr occur\n");
+    //printf("lr occur\n");
     avl_node_t* lchild = root->left;
     avl_node_t* lrgrand = root->left->right;
     root->left = lrgrand->right;
     lchild->right = lrgrand->left;
     lrgrand->right = root;
     lrgrand->left = lchild;
+    /*
     if(root->parent){
         lrgrand->parent = root->parent;
         if(root->parent->left == root && root->parent->right != root)
@@ -111,6 +116,7 @@ static avl_node_t* lr_rotate(avl_node_t* root){
     else{
         lrgrand->parent = NULL;
     }
+    */
     //update old root subtree_height
     update_subtree_height(root);
     //update rchild subtree_height
@@ -119,6 +125,11 @@ static avl_node_t* lr_rotate(avl_node_t* root){
     update_subtree_height(lrgrand);
     return lrgrand;
 }
+
+static void print_address(void *data){
+    printf("address %p", data);
+}
+
 static int address_compare(void *data_l, void *data_r){
     if(data_l > data_r)
         return -1;
@@ -134,15 +145,16 @@ static avl_op_t op_default = {
     .rl = rl_rotate,
     .lr = lr_rotate,
     .compare = address_compare,
+    .print_data = print_address,
 };
 
 static avl_node_t* rotate(avl_op_t *ops, avl_node_t *node){
     if(node->subtree_height >= 2){
         avl_node_t *lchild = node->left;
         avl_node_t *rchild = node->right;
-        int diff = ((lchild)?lchild->subtree_height:0) 
-                   - ((rchild)?rchild->subtree_height:0) + 1;
-        printf("subtree_height : %d diff : %d\n", node->subtree_height, diff);
+        int diff = ((lchild)?lchild->subtree_height+1:0) 
+                   - ((rchild)?rchild->subtree_height+1:0);
+        //printf("subtree_height : %d diff : %d\n", node->subtree_height, diff);
         avl_node_t* gll;
         avl_node_t* glr;
         avl_node_t* grl;
@@ -152,8 +164,8 @@ static avl_node_t* rotate(avl_op_t *ops, avl_node_t *node){
             case 2:
                 gll = lchild->left;
                 glr = lchild->right;
-                child_diff = ((gll)?gll->subtree_height:0)
-                             - ((glr)?glr->subtree_height:0) + 1;
+                child_diff = ((gll)?gll->subtree_height+1:0)
+                             - ((glr)?glr->subtree_height+1:0);
                 switch(child_diff){
                     case 1:
                         return ops->ll(node);
@@ -169,8 +181,8 @@ static avl_node_t* rotate(avl_op_t *ops, avl_node_t *node){
             case -2:
                 grl = rchild->left;
                 grr = rchild->right;
-                child_diff = ((grl)?grl->subtree_height:0)
-                             - ((grr)?grr->subtree_height:0) + 1;
+                child_diff = ((grl)?grl->subtree_height+1:0)
+                             - ((grr)?grr->subtree_height+1:0);
                 switch(child_diff){
                     case 1:
                         return ops->rl(node);
@@ -202,7 +214,7 @@ static avl_node_t * insert_to_node(avl_op_t *ops, avl_node_t *node, void* data){
     if(cmp > 0){
         avl_node_t *right_node = node->right;
         if(right_node){
-            insert_to_node(ops, right_node, data);
+            node->right = insert_to_node(ops, right_node, data);
             update_subtree_height(node);
             avl_node_t *new_root = rotate(ops, node);
             return (new_root)?new_root:node;
@@ -210,19 +222,19 @@ static avl_node_t * insert_to_node(avl_op_t *ops, avl_node_t *node, void* data){
         else{
             //create a leaf node and connect to parent
             avl_node_t* cnode = (avl_node_t*)calloc(1, sizeof(avl_node_t));
-            cnode->parent = node;
+            //cnode->parent = node;
             cnode->data = data;
             cnode->subtree_height = 0;
             node->right = cnode;
             update_subtree_height(node);
-            avl_node_t *new_root = rotate(ops, node);
-            return (new_root)?new_root:node;
+            //avl_node_t *new_root = rotate(ops, node);
+            return node;
         }
     }
     else if (cmp < 0){
         avl_node_t *left_node = node->left;
         if(left_node){
-            insert_to_node(ops, left_node, data);
+            node->left = insert_to_node(ops, left_node, data);
             update_subtree_height(node);
             avl_node_t *new_root = rotate(ops, node);
             return (new_root)?new_root:node;
@@ -230,13 +242,13 @@ static avl_node_t * insert_to_node(avl_op_t *ops, avl_node_t *node, void* data){
         else{
             //create a leaf node and connect to parent
             avl_node_t* cnode = (avl_node_t*)calloc(1, sizeof(avl_node_t));
-            cnode->parent = node;
+            //cnode->parent = node;
             cnode->data = data;
             cnode->subtree_height = 0;
             node->left = cnode;
             update_subtree_height(node);
-            avl_node_t *new_root = rotate(ops, node);
-            return (new_root)?new_root:node;
+            //avl_node_t *new_root = rotate(ops, node);
+            return node;
         }
     }
     else{
@@ -244,12 +256,14 @@ static avl_node_t * insert_to_node(avl_op_t *ops, avl_node_t *node, void* data){
     }
 }
 
-void avl_init(avl_root_t *root, compare_func_t cmp){
+void avl_init(avl_root_t *root, compare_func_t cmp, print_func_t pt){
     root->root = NULL;
     root->ops = (avl_op_t*) calloc(1, sizeof(avl_op_t));
     memcpy(root->ops, &op_default, sizeof(avl_op_t));
     if(cmp)
         root->ops->compare = cmp;
+    if(pt)
+        root->ops->print_data = pt;
 }
 void avl_insert(avl_root_t *root, void *data){
     if(root->root == NULL){
@@ -262,18 +276,29 @@ void avl_insert(avl_root_t *root, void *data){
         update_subtree_height(root->root);
     }
 }
-static void print_node(avl_node_t *node){
-    printf("l:%d, daddr:%p\n", node->subtree_height, node->data);
+static void print_node(avl_node_t *node, avl_op_t *ops){
+    printf("[depth:%d,", node->subtree_height);
+    
     if(node->right)
-        print_node(node->right);
-    else if(node->left)
-        print_node(node->left);
+        printf("rdepth:%d,", node->right->subtree_height + 1);
+    else
+        printf("rdepth:%d,", 0);
+    if(node->left)
+        printf("ldepth:%d]", node->left->subtree_height + 1);
+    else
+        printf("ldepth:%d]", 0);
+
+    ops->print_data(node->data);
+    printf("\n");
+    if(node->right)
+        print_node(node->right, ops);
+    if(node->left)
+        print_node(node->left, ops);
 }
 void avl_dump(avl_root_t *root){
     printf("dump avl tree\n");
     if (root->root){
-        printf("root data %p\n", root->root->data);
-        print_node(root->root);
+        print_node(root->root, root->ops);
     }
     printf("end of dump\n");
 }
