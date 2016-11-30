@@ -33,6 +33,6 @@ struct avl_root{
 extern void avl_init(avl_root_t *root, compare_func_t cmp, print_func_t pt);
 extern void avl_insert(avl_root_t *root, void *data);
 extern void* avl_search(avl_root_t *root, void *data);
-extern void avl_delete(avl_root_t *root, void *data);
+extern void* avl_delete(avl_root_t *root, void *data);
 extern void avl_dump(avl_root_t *root);
 extern void avl_fini(avl_root_t *root);

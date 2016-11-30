@@ -275,6 +275,111 @@ static void* search_under_node(avl_op_t *ops, avl_node_t *node, void* data){
         return node->data;
 }
 
+static avl_node_t* remove_right_most_node(avl_op_t *ops, avl_node_t *parent, avl_node_t *node, avl_node_t **find){
+    if(node){
+        if(node->right){
+            node->right = remove_right_most_node(ops, node, node->right, find);
+            update_subtree_height(node);
+            avl_node_t* new_root = rotate(ops, node);
+            return (new_root)?new_root:node;
+        }            
+        else{//we are the node
+            if(parent){
+                parent->right = NULL;
+                *find = node;
+                return NULL;
+            }
+            else{
+                *find = node;
+                return NULL;
+            }
+        }
+    }
+    else
+        return NULL;
+}
+
+static avl_node_t* delete_under_node(avl_op_t *ops, avl_node_t *parent, avl_node_t *node, avl_node_t **find, void* data){
+    int cmp = ops->compare(node->data, data);
+    if(cmp > 0){
+        avl_node_t *right_node = node->right;
+        if(right_node){
+            node->right = delete_under_node(ops, node, right_node, find, data);
+            update_subtree_height(node);
+            avl_node_t* new_root = rotate(ops, node);
+            return (new_root)?new_root:node;
+        }
+        else{
+            *find = NULL;
+            return node;
+        }
+    }
+    else if(cmp < 0){
+        avl_node_t *left_node = node->left;
+        if(left_node){
+            node->left = delete_under_node(ops, node, left_node, find, data);
+            update_subtree_height(node);
+            avl_node_t* new_root = rotate(ops, node);
+            return (new_root)?new_root:node;
+        }
+        else{
+            *find = NULL;
+            return node;
+        }
+    }
+    else{//we are the deleted node
+        avl_node_t* find_right_most = NULL;
+        avl_node_t* new_left = remove_right_most_node(ops, node->left, node, &find_right_most);
+        
+        //update_subtree_height(node);
+        if(find_right_most){
+            if(parent){
+                if(parent->right == node){
+                    parent->right = find_right_most;   
+                    find_right_most->left = 
+                        (find_right_most != new_left)?new_left:NULL;
+                    update_subtree_height(find_right_most);
+                    avl_node_t* new_root = rotate(ops, find_right_most); 
+                    return (new_root)?new_root:find_right_most;
+                }
+                else if(parent->left == node){
+                    parent->left = find_right_most;   
+                    find_right_most->left = 
+                        (find_right_most != new_left)?new_left:NULL;
+                    update_subtree_height(find_right_most);
+                    avl_node_t* new_root = rotate(ops, find_right_most); 
+                    return (new_root)?new_root:find_right_most;
+                }
+                else
+                    assert(0 && "impossible case (1), must be internal error!");
+            }
+            else{
+                find_right_most->left = 
+                    (find_right_most != new_left)?new_left:NULL;
+                update_subtree_height(find_right_most);
+                avl_node_t* new_root = rotate(ops, find_right_most); 
+                return (new_root)?new_root:find_right_most;
+            }
+        }
+        else{//promote right child, no need update
+            if(parent){
+                if(parent->right == node){
+                    parent->right = node->right;
+                    return node->right;
+                }
+                else if(parent->left == node){
+                    parent->left = node->right;
+                    return node->right;
+                }
+                else
+                    assert(0 && "impossible case (2), must be internal error!");
+            }
+            else
+                return node->right;
+        }
+    }
+}
+
 void avl_init(avl_root_t *root, compare_func_t cmp, print_func_t pt){
     root->root = NULL;
     root->ops = (avl_op_t*) calloc(1, sizeof(avl_op_t));
@@ -327,7 +432,19 @@ void avl_dump(avl_root_t *root){
     }
     printf("end of dump\n");
 }
-void avl_delete(avl_root_t *root, void *data){
+void* avl_delete(avl_root_t *root, void *data){
+    if (root->root){
+        avl_node_t* find = NULL;
+        root->root = delete_under_node(root->ops, NULL, root->root, &find, data);
+        if(find){
+            void* data = find->data;
+            free(find);
+            return data;
+        }
+        else
+            return NULL;
+    }
+    return NULL;
 }
 void avl_fini(avl_root_t *root){
 }
