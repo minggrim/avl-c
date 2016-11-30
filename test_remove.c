@@ -25,17 +25,19 @@ int main(){
     avl_dump(root);
     my_data_t* a;
     my_data_t* keep;
-    for(int i = 0; i < 1000; i++){
+    for(int i = 1; i <= 10; i++){
         a = (my_data_t *)calloc(1, sizeof(my_data_t));
         a->key = i;
         avl_insert(root, a);
         avl_dump(root);
     }
-    for(int i = 0; i < 200; i++){
+    
+    for(int i = 1; i <= 10; i++){
         a = (my_data_t *)calloc(1, sizeof(my_data_t));
-        a->key = i * 3;
+        a->key = i;
         void *d = avl_delete(root, a);
         avl_dump(root);
-        //assert(d);
+        assert(d);
     }
+    
 }
