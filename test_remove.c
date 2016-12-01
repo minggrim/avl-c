@@ -20,24 +20,25 @@ void my_print(void *data){
     printf("key %d", data_cast->key);
 }
 int main(){
-    avl_root_t* root = malloc(sizeof(avl_root_t));
-    avl_init(root, my_compare, my_print);
+    avl_root_t* root;
+    avl_init(&root, my_compare, my_print);
     avl_dump(root);
     my_data_t* a;
     my_data_t* keep;
-    for(int i = 1; i <= 10; i++){
+    for(int i = 1; i <= 1000; i++){
         a = (my_data_t *)calloc(1, sizeof(my_data_t));
         a->key = i;
         avl_insert(root, a);
         avl_dump(root);
     }
-    
-    for(int i = 1; i <= 10; i++){
+    for(int i = 1000; i >= 1; i--){
         a = (my_data_t *)calloc(1, sizeof(my_data_t));
         a->key = i;
         void *d = avl_delete(root, a);
         avl_dump(root);
+        free(d);
+        free(a);
         assert(d);
     }
-    
+    avl_fini(root);
 }

@@ -23,16 +23,6 @@ static avl_node_t* ll_rotate(avl_node_t* root){
     avl_node_t* lchild = root->left;
     root->left = lchild->right;
     lchild->right = root;
-    //lchild->parent = root->parent;
-    /*
-    if(root->parent){
-        if(root->parent->left == root && root->parent->right != root)
-            root->parent->left = lchild;
-        else if(root->parent->right == root && root->parent->left != root)
-            root->parent->right = lchild;
-        else
-            assert(0 && "impossible case (ll), must be internal error!");
-    }*/
     //update old root subtree_height
     update_subtree_height(root);
     //update new root subtree_height
@@ -45,19 +35,6 @@ static avl_node_t* rr_rotate(avl_node_t* root){
     avl_node_t* rchild = root->right;
     root->right = rchild->left;
     rchild->left = root;
-    /*
-    if(root->parent){
-        rchild->parent = root->parent;
-        if(root->parent->left == root && root->parent->right != root)
-            root->parent->left = rchild;
-        else if(root->parent->right == root && root->parent->left != root)
-            root->parent->right = rchild;
-        else
-            assert(0 && "impossible case (), must be internal error!");
-    }
-    else{
-        rchild->parent = NULL;
-    }*/
     //update old root subtree_height
     update_subtree_height(root);
     //update new root subtree_height
@@ -73,20 +50,6 @@ static avl_node_t* rl_rotate(avl_node_t* root){
     rchild->left = rlgrand->right;
     rlgrand->left = root;
     rlgrand->right = rchild;
-    /*
-    if(root->parent){
-        rlgrand->parent = root->parent;
-        if(root->parent->left == root && root->parent->right != root)
-            root->parent->left = rlgrand;
-        else if(root->parent->right == root && root->parent->left != root)
-            root->parent->right = rlgrand;
-        else
-            assert(0 && "impossible case (), must be internal error!");
-    }
-    else{
-        rlgrand->parent = NULL;
-    }
-    */
     //update old root subtree_height
     update_subtree_height(root);
     //update rchild subtree_height
@@ -103,20 +66,6 @@ static avl_node_t* lr_rotate(avl_node_t* root){
     lchild->right = lrgrand->left;
     lrgrand->right = root;
     lrgrand->left = lchild;
-    /*
-    if(root->parent){
-        lrgrand->parent = root->parent;
-        if(root->parent->left == root && root->parent->right != root)
-            root->parent->left = lrgrand;
-        else if(root->parent->right == root && root->parent->left != root)
-            root->parent->right = lrgrand;
-        else
-            assert(0 && "impossible case (), must be internal error!");
-    }
-    else{
-        lrgrand->parent = NULL;
-    }
-    */
     //update old root subtree_height
     update_subtree_height(root);
     //update rchild subtree_height
@@ -294,6 +243,18 @@ static avl_node_t* remove_right_most_node(avl_op_t *ops, avl_node_t *node, avl_n
         return NULL;
 }
 
+static void free_under_node(avl_node_t *node){
+    if(!node)
+        return;
+    if(node->left)
+        free_under_node(node->left);
+    if(node->right)
+        free_under_node(node->right);
+    void *data = node->data;
+    free(node);
+    free(data);
+}
+
 static avl_node_t* delete_under_node(avl_op_t *ops, avl_node_t *node, avl_node_t **find, void* data){
     int cmp = ops->compare(node->data, data);
     if(cmp > 0){
@@ -341,7 +302,8 @@ static avl_node_t* delete_under_node(avl_op_t *ops, avl_node_t *node, avl_node_t
     }
 }
 
-void avl_init(avl_root_t *root, compare_func_t cmp, print_func_t pt){
+void avl_init(avl_root_t **rootp, compare_func_t cmp, print_func_t pt){
+    avl_root_t* root = calloc(1, sizeof(avl_root_t));
     root->root = NULL;
     root->ops = (avl_op_t*) calloc(1, sizeof(avl_op_t));
     memcpy(root->ops, &op_default, sizeof(avl_op_t));
@@ -349,6 +311,7 @@ void avl_init(avl_root_t *root, compare_func_t cmp, print_func_t pt){
         root->ops->compare = cmp;
     if(pt)
         root->ops->print_data = pt;
+    *rootp = root;
 }
 void avl_insert(avl_root_t *root, void *data){
     if(root->root){
@@ -408,6 +371,9 @@ void* avl_delete(avl_root_t *root, void *data){
     return NULL;
 }
 void avl_fini(avl_root_t *root){
+    free_under_node(root->root);
+    free(root->ops);
+    free(root);
 }
 
 

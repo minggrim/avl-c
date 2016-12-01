@@ -30,7 +30,7 @@ struct avl_root{
     avl_op_t *ops;
 };
 
-extern void avl_init(avl_root_t *root, compare_func_t cmp, print_func_t pt);
+extern void avl_init(avl_root_t **root, compare_func_t cmp, print_func_t pt);
 extern void avl_insert(avl_root_t *root, void *data);
 extern void* avl_search(avl_root_t *root, void *data);
 extern void* avl_delete(avl_root_t *root, void *data);
