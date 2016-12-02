@@ -306,6 +306,7 @@ void avl_init(avl_root_t **rootp, compare_func_t cmp, print_func_t pt){
     avl_root_t* root = calloc(1, sizeof(avl_root_t));
     root->root = NULL;
     root->ops = (avl_op_t*) calloc(1, sizeof(avl_op_t));
+    pthread_rwlock_init(&root->tree_lock, NULL);
     memcpy(root->ops, &op_default, sizeof(avl_op_t));
     if(cmp)
         root->ops->compare = cmp;
@@ -314,6 +315,7 @@ void avl_init(avl_root_t **rootp, compare_func_t cmp, print_func_t pt){
     *rootp = root;
 }
 void avl_insert(avl_root_t *root, void *data){
+    pthread_rwlock_wrlock(&root->tree_lock);
     if(root->root){
         root->root = insert_to_node(root->ops, root->root, data);
         update_subtree_height(root->root);
@@ -323,12 +325,15 @@ void avl_insert(avl_root_t *root, void *data){
         root->root->data = data;
         root->root->subtree_height = 0;
     }
+    pthread_rwlock_unlock(&root->tree_lock);
 }
 void* avl_search(avl_root_t *root, void *data){
+    pthread_rwlock_rdlock(&root->tree_lock);
+    void *search = NULL;
     if(root->root)
-        return search_under_node(root->ops, root->root, data);
-    else
-        return NULL;
+        search = search_under_node(root->ops, root->root, data);
+    pthread_rwlock_unlock(&root->tree_lock);
+    return search;
 }
 static void print_node(avl_node_t *node, avl_op_t *ops){
     printf("[depth:%d,", node->subtree_height);
@@ -350,16 +355,20 @@ static void print_node(avl_node_t *node, avl_op_t *ops){
         print_node(node->left, ops);
 }
 void avl_dump(avl_root_t *root){
+    pthread_rwlock_rdlock(&root->tree_lock);
     printf("dump avl tree\n");
     if (root->root){
         print_node(root->root, root->ops);
     }
     printf("end of dump\n");
+    pthread_rwlock_unlock(&root->tree_lock);
 }
 void* avl_delete(avl_root_t *root, void *data){
+    pthread_rwlock_wrlock(&root->tree_lock);
     if (root->root){
         avl_node_t* find = NULL;
         root->root = delete_under_node(root->ops, root->root, &find, data);
+        pthread_rwlock_unlock(&root->tree_lock);
         if(find){
             void* data = find->data;
             free(find);
@@ -368,12 +377,17 @@ void* avl_delete(avl_root_t *root, void *data){
         else
             return NULL;
     }
+    pthread_rwlock_unlock(&root->tree_lock);
     return NULL;
 }
-void avl_fini(avl_root_t *root){
+int avl_fini(avl_root_t *root){
+    int error = pthread_rwlock_destroy(&root->tree_lock);
+    if(error)
+        return EZAVL_DESTROY_TREE_LOCK_FAILED;
     free_under_node(root->root);
     free(root->ops);
     free(root);
+    return EZAVL_SUCCESS;
 }
 
 
