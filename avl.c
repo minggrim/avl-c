@@ -18,7 +18,6 @@ static void update_subtree_height(avl_node_t* node){
         node->subtree_height = 0;
 }
 static avl_node_t* ll_rotate(avl_node_t* root){
-    //printf("ll occur\n");
     //update link
     avl_node_t* lchild = root->left;
     root->left = lchild->right;
@@ -30,7 +29,6 @@ static avl_node_t* ll_rotate(avl_node_t* root){
     return lchild;
 }
 static avl_node_t* rr_rotate(avl_node_t* root){
-    //printf("rr occur\n");
     //update link
     avl_node_t* rchild = root->right;
     root->right = rchild->left;
@@ -42,7 +40,6 @@ static avl_node_t* rr_rotate(avl_node_t* root){
     return rchild;
 }
 static avl_node_t* rl_rotate(avl_node_t* root){
-    //printf("rl occur\n");
     avl_node_t* rchild = root->right;
     avl_node_t* rlgrand = root->right->left;
     //update link
@@ -59,7 +56,6 @@ static avl_node_t* rl_rotate(avl_node_t* root){
     return rlgrand;
 }
 static avl_node_t* lr_rotate(avl_node_t* root){
-    //printf("lr occur\n");
     avl_node_t* lchild = root->left;
     avl_node_t* lrgrand = root->left->right;
     root->left = lrgrand->right;
@@ -173,12 +169,10 @@ static avl_node_t * insert_to_node(avl_op_t *ops, avl_node_t *node, void* data){
         else{
             //create a leaf node and connect to parent
             avl_node_t* cnode = (avl_node_t*)calloc(1, sizeof(avl_node_t));
-            //cnode->parent = node;
             cnode->data = data;
             cnode->subtree_height = 0;
             node->right = cnode;
             update_subtree_height(node);
-            //avl_node_t *new_root = rotate(ops, node);
             return node;
         }
     }
@@ -193,12 +187,10 @@ static avl_node_t * insert_to_node(avl_op_t *ops, avl_node_t *node, void* data){
         else{
             //create a leaf node and connect to parent
             avl_node_t* cnode = (avl_node_t*)calloc(1, sizeof(avl_node_t));
-            //cnode->parent = node;
             cnode->data = data;
             cnode->subtree_height = 0;
             node->left = cnode;
             update_subtree_height(node);
-            //avl_node_t *new_root = rotate(ops, node);
             return node;
         }
     }
